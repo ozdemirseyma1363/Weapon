@@ -1,14 +1,16 @@
 import face_recognition#yüz tanıma kütüphanesi
 import dlib#yapay zeka kütüphanesi
 import cv2#görüntü işleme kütüphanesi
-import ctypes#message box için gerekli kütüphane
 import imutils#yeniden boyutlandırma için gerekli kütüphane
 import keyboard#klavye kullanımı için gerekli kütüphane
-import datetime
-tarih = datetime.datetime.now()
+import datetime#zaman kullanımı için gerekli kütüphane
+import openpyxl #excel işlemleri için kurulan kütüphane
+wb = openpyxl.load_workbook('mert.xlsx')
+sayfa=wb.active#dosyayı etkinleştirme
+tarih = datetime.datetime.now()#bize içindeki bulunduğumuz andaki tarih, saat ve zaman bilgilerini verir.
 a="BEYZA"#kişi adı
 silah_cascade = cv2.CascadeClassifier("C:\\Users\\User\\Desktop\\cascade.xml")#cascade sınıflandırıcısının dosya yolu
-bicak_cascade=cv2.CascadeClassifier("C:\\Users\\User\\Desktop\\deneme13.xml")#cascade sınıflandırıcısının dosya yolu
+bicak_cascade=cv2.CascadeClassifier("C:\\Users\\User\\Desktop\\bicak1\\classifier\\cascade.xml")#cascade sınıflandırıcısının dosya yolu
 detector=dlib.get_frontal_face_detector()#yüzleri tespit etmek için kullanabileceğimiz sınıfın ir nesnesini döndürecektir.
 ben=face_recognition.load_image_file("49.PNG")#yüz tespiti yapılacak kişinin resmi
 ben1=face_recognition.face_encodings(ben)[0]
@@ -32,22 +34,26 @@ while True:#sonsuz döngü
     frame = imutils.resize(frame, width=500)#yeniden boyutlandırmsa
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)#griye dönüştürme
     gray = cv2.GaussianBlur(gray, (21, 21), 0)#filtreleme
-    silah = silah_cascade.detectMultiScale(gray, 1.3,12, minSize=(100, 100))#silahların kordinat değerleri bulunur
-    bicak= bicak_cascade.detectMultiScale(gray,1.4, 800)#bıçakların  kordinat değerleri bulunur
+    silah = silah_cascade.detectMultiScale(gray, 1.3, 12, minSize=(100, 100))#silahların kordinat değerleri bulunur
+    bicak= bicak_cascade.detectMultiScale(gray,1.3, 300)#bıçakların  kordinat değerleri bulunur
     for (x, y, w, h) in silah:
         frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)#silahları dikdörtgen içine al
         cv2.putText(frame, "silah", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), cv2.LINE_4)
         gray1= gray[y:y + h, x:x + w]
         color1 = frame[y:y + h, x:x + w]
         #ctypes.windll.user32.MessageBoxW(0, a+"  KİŞİSİNDE SİLAH TESPİT EDİLMİŞTİR", "UYARI", 0)#message box ile uyarı ver
-        ctypes.windll.user32.MessageBoxW(0, str(tarih)+" SİLAH TESPİT EDİLMİŞTİR", "UYARI", 0)  # messagebox ile uyarı ver
+        sayfa.append([a +" KİSİSİ "+str(tarih)+" TARİHİNDE SİLAH İLE GİRİŞ YAPTI "])  # excel dosyasına yazısını ekler
+        wb.save("mert.xlsx")  # kaydeder
+        #ctypes.windll.user32.MessageBoxW(0, str(tarih)+" SİLAH TESPİT EDİLMİŞTİR", "UYARI", 0)  # messagebox ile uyarı ver
     for (x, y, w, h) in bicak:
         frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)#bicakları dikdörtgen içine a
         cv2.putText(frame, "bicak", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), cv2.LINE_4)
         gray2 = gray[y:y + h, x:x + w]
         color2 = frame[y:y + h, x:x + w]
         #ctypes.windll.user32.MessageBoxW(0,a+" KİŞİSİNDE BIÇAK TESPİT EDİLMİŞTİR", "UYARI", 0)#messagebox ile uyarı ver
-        ctypes.windll.user32.MessageBoxW(0, str(tarih)+" BIÇAK TESPİT EDİLMİŞTİR", "UYARI", 0)#messagebox ile uyarı ver
+        #ctypes.windll.user32.MessageBoxW(0, str(tarih)+" BIÇAK TESPİT EDİLMİŞTİR", "UYARI", 0)#messagebox ile uyarı ver
+        sayfa.append([a +" KİSİSİ "+str(tarih)+" TARİHİNDE BICAK İLE GİRİŞ YAPTI "])  # excel dosyasına  yazısını ekler
+        wb.save("mert.xlsx")  # kaydeder
     if firstFrame is None:#eğer kare yoksa
         firstFrame = gray#gray ilk karedir
         continue#devam et
@@ -65,4 +71,5 @@ while True:#sonsuz döngü
     if keyboard.is_pressed("f"):#f tuşuna basıldığında
         cv2.destroyAllWindows()#pencereyi kapat
         cap.release()#kamerayı durdur
+        wb.close()
         break#çık
